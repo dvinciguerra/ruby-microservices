@@ -4,12 +4,9 @@ require 'sinatra'
 require 'sinatra/json'
 require 'jwt'
 
-HMAC_SECRET = 's3cr3t'
+require './lib/auth/repository/user_repository'
 
-user = {
-  email: 'dev@example.org',
-  password: 'test'
-}
+HMAC_SECRET = ENV.fetch('HMAC_SECRET') { 's3cr3t' }
 
 before do
   request.body.rewind
@@ -19,15 +16,22 @@ end
 post '/v1/auth' do
   email, password = @request_payload.values_at(:email, :password)
 
-  unless user[:email] == email && user[:password] == password
+  user = Auth::Repository::UserRepository.authenticate(email: email, password: password)
+  unless user
     halt 400, { errors: { message: 'invalid_username_or_password' } }.to_json
   end
 
-  token = JWT.encode(@request_payload, HMAC_SECRET, 'HS256')
+  token = JWT.encode(user.to_h, HMAC_SECRET, 'HS256')
   json token: token
 end
 
 post '/v1/token' do
-  token_decoded = JWT.decode(token, HMAC_SECRET, true, algorithm: 'HS256')
+  token = ''
+  payload, _metadata = JWT.decode(token, HMAC_SECRET, true, algorithm: 'HS256')
+
+  unless payload[:email] == email && user[:password] == password
+    halt 400, { errors: { message: 'invalid_username_or_password' } }.to_json
+  end
+
   json token: 'my-token'
 end

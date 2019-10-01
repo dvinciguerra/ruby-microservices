@@ -1,12 +1,17 @@
 # frozen_string_literal: true
 
+require 'securerandom'
 require_relative '../entity/user'
 
 module Auth
   module Repository
     class UserRepository
       @users = [
-        { email: 'dev@example.org', password: 'test' }
+        {
+          id: SecureRandom.uuid,
+          email: 'dev@example.org',
+          password: 'test'
+        }
       ]
 
       def self.authenticate(email:, password:)

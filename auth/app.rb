@@ -1,16 +1,12 @@
 # frozen_string_literal: true
 
 require 'jwt'
-require 'logger'
 require 'sinatra'
 require 'sinatra/json'
-require 'sinatra/custom_logger'
 
 require './lib/auth/repository/user_repository'
 
 HMAC_SECRET = ENV.fetch('HMAC_SECRET') { 's3cr3t' }
-
-set :logger, Logger.new(STDOUT)
 
 before do
   request.body.rewind
@@ -32,7 +28,7 @@ post '/v1/validate-token' do
   token = @request_payload[:token]
   payload, _metadata = JWT.decode(token, HMAC_SECRET, true, algorithm: 'HS256')
 
-  json email: payload['email']
+  json id: payload['id'], email: payload['email']
 rescue JWT::VerificationError
   halt 401
 end

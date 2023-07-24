@@ -11,7 +11,7 @@ before do
   @request_payload = JSON.parse(request.body.read, symbolize_names: true)
 
   response = HTTP.post(
-    'http://localhost:3001/v1/validate-token', json: { token: request.env['HTTP_AUTHORIZATION'] }
+    'http://localhost:3001/v1/validate-token', json: { token: request.env['HTTP_AUTHORIZATION'].split(' ').last }
   )
   halt(401) unless response.status.success?
 end
